@@ -1,6 +1,8 @@
 #pragma once
 
 #include <samplers/random_sampler.hpp>
+#include <algorithm>
+#include <execution>
 
 namespace pt
 {
@@ -20,41 +22,39 @@ namespace pt
             } resolution{};
         };
 
-        struct tile
-        {
-            static constexpr unsigned int tile_dim = 16u;
-            unsigned int x_begin, y_begin;
-        };
-
         template<typename Camera>
         buffer_type render_scene(scene const& sc, Camera const& camera, render_properties const& properties = render_properties{}) const noexcept
         {
             buffer_type buffer(properties.resolution.x, properties.resolution.y);
-            auto& data = buffer.get_data();
-            float const inv_samples = 1.0f / properties.num_samples;
-            float const aspect_ratio = properties.resolution.x / static_cast<float>(properties.resolution.y);
-            float const width_inverse = 1.0f / properties.resolution.x;
-            float const height_inverse = 1.0f / properties.resolution.y;
 
-            pt::samplers::random_sampler sampler;
+            std::for_each(std::execution::par, buffer.get_tiles().cbegin(), buffer.get_tiles().cend(), [&, this](auto const& tile){
 
-            for(auto x = 0; x < buffer.get_width(); ++x)
-            {
-                for(auto y = 0; y < buffer.get_height(); ++y)
+                auto& data = buffer.get_data();
+                float const inv_samples = 1.0f / properties.num_samples;
+                float const aspect_ratio = properties.resolution.x / static_cast<float>(properties.resolution.y);
+                float const width_inverse = 1.0f / properties.resolution.x;
+                float const height_inverse = 1.0f / properties.resolution.y;
+
+                pt::samplers::random_sampler sampler;
+
+                for(auto y = tile.y_begin; y < tile.y_end; ++y)
                 {
-                    glm::vec3 accumulated{0.0f};
-
-                    for(auto s = 0; s < properties.num_samples; ++s)
+                    for(auto x = tile.x_begin; x < tile.x_end; ++x)
                     {
-                        auto const ray = camera.generate_ray(x, y, sampler.generate_2D(), sampler.generate_2D(),
-                                                                aspect_ratio, width_inverse, height_inverse);
+                        glm::vec3 accumulated{0.0f};
 
-                        accumulated += Policy::evaluate(sc, ray, properties.eval_properties);
+                        for(auto s = 0; s < properties.num_samples; ++s)
+                        {
+                            auto const ray = camera.generate_ray(x, y, sampler.generate_2D(), sampler.generate_2D(),
+                                                                    aspect_ratio, width_inverse, height_inverse);
+
+                            accumulated += Policy::evaluate(sc, ray, properties.eval_properties);
+                        }
+
+                        data[x][y] = inv_samples * accumulated;
                     }
-
-                    data[x][y] = inv_samples * accumulated;
                 }
-            }
+            });
 
             return buffer;
         }

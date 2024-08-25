@@ -16,20 +16,11 @@ namespace pt::integrators
 
         struct evaluation_properties
         {
-            unsigned int bounce_limit{2u};
+            unsigned int bounce_limit{4u};
         };
 
         [[nodiscard]] glm::vec3 evaluate(scene const& s, ray r, evaluation_properties const& properties) const noexcept
         {
-            // auto const hit_optional = s.closest_hit(r);
-
-            // if(!hit_optional) return glm::vec3{0.0f};
-
-            // auto const& shape = s.shapes[hit_optional->shape_id];
-            // auto const& mat = s.materials[std::get<shapes::sphere>(shape).material_ID];
-
-            // return mat.albedo;
-            
             glm::vec3 l{0.0f}, beta{1.0f};
             pt::samplers::random_sampler sampler;
             constexpr float epsilon = 0.001f;
