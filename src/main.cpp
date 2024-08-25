@@ -10,6 +10,8 @@
 
 #include <filesystem>
 #include <fstream>
+#include <chrono>
+#include <iostream>
 
 pt::scene create_scene()
 {
@@ -84,7 +86,13 @@ int main(int argc, char** argv)
     auto const cam = create_camera();
     auto integrator = create_integrator();
 
+    auto const start = std::chrono::high_resolution_clock::now();
     auto const image_buffer = integrator.render_scene(sc, cam);
+    auto const end = std::chrono::high_resolution_clock::now();
+
+    auto const time = std::chrono::duration_cast<std::chrono::seconds>(end - start);
+
+    std::cout << "Render time: " << std::to_string(time.count()) << " s." << std::endl;
 
     save_image("output.ppm", image_buffer);
 
