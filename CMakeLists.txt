@@ -9,5 +9,4 @@ add_executable(${PROJECT_NAME})
 add_definitions(-DCMAKE_EXPORT_COMPILE_COMMANDS=ON)
 
 add_subdirectory(src)
-add_subdirectory(include)
-target_include_directories(${PROJECT_NAME} PUBLIC include lib)
+target_include_directories(${PROJECT_NAME} PUBLIC src lib)

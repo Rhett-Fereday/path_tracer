@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sphere.hpp>
+#include <shapes/sphere.hpp>
 #include <ray.hpp>
 #include <hit_info.hpp>
 #include <utils/math.hpp>

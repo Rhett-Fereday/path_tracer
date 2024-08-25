@@ -20,18 +20,22 @@ namespace pt::integrators
         template<typename Camera>
         void render_scene(scene const& s, Camera const& camera) noexcept
         {
-            for(auto x = 0; x < image_buffer.get_width(); ++x)
+            auto& data = image_buffer.get_data();
+
+            for(auto y = 0; y < image_buffer.get_height(); ++y)
             {
-                for(auto y = 0; y < image_buffer.get_height(); ++y)
+                for(auto x = 0; x < image_buffer.get_width(); ++x)
                 {
                     glm::vec3 accumulated{0.0f};
 
                     for(auto s = 0; s < sample_count; ++s)
                     {
-                        auto const ray = camera.generate_ray(x, y, uv1, uv2, aspect_ratio, angle, width_inverse, height_inverse);
+                        // auto const ray = camera.generate_ray(x, y, uv1, uv2, aspect_ratio, angle, width_inverse, height_inverse);
 
-                        accumulated += evaluate(s, ray);
+                        // accumulated += evaluate(s, ray);
                     }
+
+                    data[x][y] = glm::vec3{0.0f, 0.0f, 1.0f};
                 }
             }
         }

@@ -3,7 +3,6 @@
 #include <scene.hpp>
 #include <ray.hpp>
 #include <glm/glm.hpp>
-#include <glm/gtx/transform.hpp>
 
 namespace pt
 {
@@ -15,7 +14,7 @@ namespace pt
             lens{std::move(lens)}
         {}
 
-        [[nodiscard]] ray Camera::generate_ray(unsigned int const x, unsigned int const y,
+        [[nodiscard]] ray generate_ray(unsigned int const x, unsigned int const y,
                                             glm::vec2 const& uv1, glm::vec2 const& uv2,
                                             float const aspect_ratio, float const angle,
                                             float const width_inverse, float const height_inverse) const noexcept
