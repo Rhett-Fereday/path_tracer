@@ -3,7 +3,9 @@
 #include <material.hpp>
 #include <lenses/pinhole.hpp>
 #include <image_buffers/hdr_buffer.hpp>
+#include <integrators/integrator.hpp>
 #include <integrators/ray_caster.hpp>
+#include <integrators/path_tracer.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <filesystem>
@@ -12,11 +14,21 @@
 pt::scene create_scene()
 {
     pt::scene s;
-    material red_mat { {1.0f, 0.0f, 0.0f} };
-    
+    material red_mat { {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}};
+    material ground_mat { {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}};
+    material light_mat { {1.0f, 1.0f, 1.0f}, {10.0f, 10.0f, 5.0f}};
+
     auto const red_ID = s.add_material(red_mat);
+    auto const ground_ID = s.add_material(ground_mat);
+    auto const light_ID = s.add_material(light_mat);
 
     s.add_shape(pt::shapes::sphere{1.0f, red_ID}, glm::identity<glm::mat4>());
+
+    s.add_shape(pt::shapes::sphere{10'000.0f, ground_ID},
+                glm::translate(glm::identity<glm::mat4>(), {0.0f, -10'001.0f, 0.0f}));
+
+    s.add_shape(pt::shapes::sphere{0.5f, light_ID},
+                glm::translate(glm::identity<glm::mat4>(), {-1.75f, 1.5f, 0.85f}));
 
     return s;
 }
@@ -28,11 +40,8 @@ auto create_camera()
 
 auto create_integrator()
 {
-    auto const num_samples = 1;
-    auto const width = 512u;
-    auto const height = 512u;
-
-    return pt::integrators::ray_caster(pt::image_buffers::hdr_buffer(width, height), num_samples);
+    // return pt::integrator<pt::integrators::ray_caster>();
+    return pt::integrator<pt::integrators::path_tracer>();
 }
 
 void save_image(std::filesystem::path file_path, pt::image_buffers::hdr_buffer const& image_buffer)
@@ -47,9 +56,9 @@ void save_image(std::filesystem::path file_path, pt::image_buffers::hdr_buffer c
 
     for (int j = image_height - 1; j >= 0; --j) 
     {
-        for (int i = 0; i < image_width; ++i) 
+        for (int i = 0; i < image_width; ++i)
         {
-            auto color = data[i][j];
+            auto const& color = data[i][image_height - j];
 
             int R = color.r * 255;
             int G = color.g * 255;
@@ -75,9 +84,9 @@ int main(int argc, char** argv)
     auto const cam = create_camera();
     auto integrator = create_integrator();
 
-    integrator.render_scene(sc, cam);
+    auto const image_buffer = integrator.render_scene(sc, cam);
 
-    save_image("output.ppm", integrator.get_image_buffer());
+    save_image("output.ppm", image_buffer);
 
     return 0;
 }

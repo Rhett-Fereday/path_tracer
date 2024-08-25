@@ -3,6 +3,8 @@
 #include <scene.hpp>
 #include <ray.hpp>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/ext/scalar_constants.hpp>
 
 namespace pt
 {
@@ -10,14 +12,26 @@ namespace pt
     class camera
     {
     public:
-        constexpr camera(Lens_Type lens) noexcept :
-            lens{std::move(lens)}
+        struct camera_settings
+        {
+            glm::vec3 position{ 0.0f, 0.0f, 3.0f };
+            glm::vec3 look_at = { 0.0f, 0.0f, 0.0f };
+            glm::vec3 up_vector = { 0.0f, 1.0f, 0.0f };
+            float focal_distance{ 1.0f };
+            float fov{ 90.0f };
+        };
+
+        constexpr camera(Lens_Type lens, camera_settings settings = camera_settings{}) noexcept :
+            settings(std::move(settings)),
+            to_world_transform(glm::inverse(glm::lookAt(settings.position, settings.look_at, settings.up_vector))),
+            lens{std::move(lens)},
+            angle(glm::tan(glm::pi<float>() * 0.5f * settings.fov / 180.0f))
         {}
 
         [[nodiscard]] ray generate_ray(unsigned int const x, unsigned int const y,
                                             glm::vec2 const& uv1, glm::vec2 const& uv2,
-                                            float const aspect_ratio, float const angle,
-                                            float const width_inverse, float const height_inverse) const noexcept
+                                            float const aspect_ratio, float const width_inverse,
+                                            float const height_inverse) const noexcept
         {
             float const x_offset = -0.5f + uv1.x;
             float const y_offset = -0.5f + uv1.y;
@@ -26,7 +40,7 @@ namespace pt
 
             ray camera_ray { lens.generate_lens_position(uv2),  glm::normalize(glm::vec3(i, j, -1))};
 
-            float distance = std::abs(1.0f / camera_ray.direction.z);//std::abs(settings.focalDistance / camera_ray.direction.z);
+            float distance = std::abs(settings.focal_distance / camera_ray.direction.z);//std::abs(settings.focalDistance / camera_ray.direction.z);
             glm::vec3 focus_plane_point = camera_ray.direction * distance;
 
             glm::vec3 focused_ray_direction = focus_plane_point - camera_ray.origin;
@@ -42,7 +56,9 @@ namespace pt
         }
 
     private:
+        camera_settings settings;
         glm::mat4 to_world_transform;
         Lens_Type lens;
+        float angle;
     };
 }

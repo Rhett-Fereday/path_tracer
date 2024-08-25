@@ -4,5 +4,5 @@
 
 struct material
 {
-    glm::vec3 albedo;
+    glm::vec3 albedo, emissiveness;
 };
