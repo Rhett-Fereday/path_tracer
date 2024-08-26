@@ -14,11 +14,11 @@ namespace pt
     public:
         struct camera_settings
         {
-            glm::vec3 position{ 0.0f, 0.0f, 3.0f };
-            glm::vec3 look_at = { 0.0f, 0.0f, 0.0f };
+            glm::vec3 position{ 0.0f, 0.65f, 1.99f };
+            glm::vec3 look_at = { 0.0f, 0.65f, 0.0f };
             glm::vec3 up_vector = { 0.0f, 1.0f, 0.0f };
             float focal_distance{ 1.0f };
-            float fov{ 90.0f };
+            float fov{ 45.0f };
         };
 
         constexpr camera(Lens_Type lens, camera_settings settings = camera_settings{}) noexcept :

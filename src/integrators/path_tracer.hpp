@@ -6,6 +6,7 @@
 #include <hit_info.hpp>
 #include <glm/glm.hpp>
 #include <samplers/random_sampler.hpp>
+#include <utils/shape_visitor.hpp>
 
 namespace pt::integrators
 {
@@ -36,7 +37,7 @@ namespace pt::integrators
                 }
 
                 auto const& shape = s.shapes[hit_optional->shape_id];
-                auto const& mat = s.materials[std::get<shapes::sphere>(shape).material_ID];
+                auto const& mat = s.materials[std::visit(shape_visitor{}, shape)];
 
                 l += beta * mat.emissiveness;
 

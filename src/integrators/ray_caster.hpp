@@ -4,6 +4,7 @@
 #include <scene.hpp>
 #include <camera.hpp>
 #include <hit_info.hpp>
+#include <utils/shape_visitor.hpp>
 
 namespace pt::integrators
 {
@@ -22,7 +23,7 @@ namespace pt::integrators
             if(!hit_optional) return glm::vec3{0.0f};
 
             auto const& shape = s.shapes[hit_optional->shape_id];
-            auto const& mat = s.materials[std::get<shapes::sphere>(shape).material_ID];
+            auto const& mat = s.materials[std::visit(shape_visitor{}, shape)];
 
             return mat.albedo;
         }

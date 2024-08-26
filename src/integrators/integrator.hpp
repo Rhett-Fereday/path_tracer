@@ -18,7 +18,7 @@ namespace pt
             unsigned int num_samples{32u};
             struct resolution_pair
             {
-                unsigned int x{512u}, y{512u};
+                unsigned int x{640u}, y{480u};
             } resolution{};
         };
 
