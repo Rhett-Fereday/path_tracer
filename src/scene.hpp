@@ -1,6 +1,7 @@
 #pragma once
 
 #include <shapes/sphere.hpp>
+#include <shapes/plane.hpp>
 #include <material.hpp>
 #include <ray.hpp>
 #include <hit_info.hpp>
@@ -16,7 +17,7 @@ namespace pt
     class scene
     {
     public:
-        using shape = std::variant<shapes::sphere>;
+        using shape = std::variant<shapes::sphere, shapes::plane>;
 
         [[nodiscard]] constexpr auto add_material(material mat) -> unsigned int
         {
@@ -31,7 +32,6 @@ namespace pt
             normal_to_world_transforms.emplace_back(glm::transpose(glm::inverse(to_world)));
             to_world_transforms.emplace_back(std::move(to_world));
         }
-
 
         [[nodiscard]] constexpr auto closest_hit(ray const& r) const noexcept -> std::optional<hit_info>
         {
@@ -48,9 +48,10 @@ namespace pt
                                       glm::normalize(glm::vec3(to_local_transform * glm::vec4(r.direction, 0.0f)))
                                     };
 
-                auto const [intersect_evaluator, typed_shape] = std::visit(visitor, current_shape);
+                // auto const [intersect_evaluator, typed_shape] = std::visit(visitor, current_shape);
+                // auto const intersect_evaluator = std::visit(visitor, current_shape, std::variant<ray>(local_ray));
 
-                if(auto const hit_optional = intersect_evaluator(typed_shape, local_ray);
+                if(auto const hit_optional = std::visit(visitor, current_shape, std::variant<ray>(local_ray));
                     hit_optional && hit_optional->distance < min_distance)
                 {
                     info = std::move(hit_optional);

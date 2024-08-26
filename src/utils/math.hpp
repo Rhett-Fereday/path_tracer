@@ -45,4 +45,29 @@ namespace pt::math
 
         return std::optional(std::move(info));
     }
+
+    [[nodiscard]] constexpr auto ray_plane_intersect(float const length, float const width, ray const& r) noexcept -> std::optional<hit_info>
+    {
+        hit_info info;
+
+        info.normal = glm::vec3{ 0.0f, 0.0f, 1.0f };
+
+        // assuming vectors are all normalized
+        float const denom = glm::dot(info.normal, -r.direction);
+
+        if (denom <= 1e-6) return std::nullopt;
+
+        info.distance = glm::dot(r.origin, info.normal) / denom;
+
+        if (info.distance <= 0.0f) return std::nullopt;
+
+        info.position = r.origin + info.distance * r.direction;
+
+        float const x = glm::abs(info.position.x);
+        float const y = glm::abs(info.position.y);
+
+        if ((x > width * 0.5f) || (y > length * 0.5f)) return std::nullopt;
+
+        return std::optional(std::move(info));
+    }
 }
