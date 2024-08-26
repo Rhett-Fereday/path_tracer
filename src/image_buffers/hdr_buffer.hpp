@@ -18,7 +18,7 @@ namespace pt::image_buffers
             unsigned int x_begin, x_end, y_begin, y_end;
         };
 
-        constexpr hdr_buffer(unsigned int width = 512u, unsigned int height = 512u) :
+        hdr_buffer(unsigned int const width, unsigned int const height) :
             data(width, std::vector(height, glm::vec3{0.0f})),
             width(width),
             height(height)

@@ -3,6 +3,10 @@
 #include <material.hpp>
 #include <lenses/pinhole.hpp>
 #include <image_buffers/hdr_buffer.hpp>
+#include <image_buffers/rgb_buffer.hpp>
+#include <post_processes/gamma_correction.hpp>
+#include <post_processes/clamp_to_rgb.hpp>
+#include <post_processes/modified_reinhard.hpp>
 #include <integrators/integrator.hpp>
 #include <integrators/ray_caster.hpp>
 #include <integrators/path_tracer.hpp>
@@ -26,11 +30,15 @@ pt::scene create_scene()
     auto const scale = 1.0f;
     material light_mat { {1.0f, 1.0f, 1.0f}, scale * glm::vec3{1.0f, 1.0f, 1.0f}};
 
+    auto const small_scale = 2.5f;
+    material small_light_mat {{ 1.0f, 1.0f, 1.0f }, small_scale * glm::vec3{1.0f, 0.75f, 0.5f}};
+
     auto const red_ID = s.add_material(red_mat);
     auto const green_ID = s.add_material(green_mat);
     auto const white_ID = s.add_material(white_mat);
     
     auto const light_ID = s.add_material(light_mat);
+    auto const small_light_ID = s.add_material(small_light_mat);
 
     // add sphere
     s.add_shape(pt::shapes::sphere{0.3f, white_ID},
@@ -69,9 +77,15 @@ pt::scene create_scene()
     // s.add_shape(pt::shapes::plane{0.25f, 0.25f, light_ID},
     //             glm::rotate(glm::translate(glm::identity<glm::mat4>(), {0.0f, 1.299f, 0.0f}),
     //             glm::radians(90.0f), { 1.0f, 0.0f, 0.0f }));
+
+    // add skylight
     s.add_shape(pt::shapes::plane{1.5f, 1.5f, light_ID},
                 glm::rotate(glm::translate(glm::identity<glm::mat4>(), {0.0f, 1.3f, 0.0f}),
                 glm::radians(90.0f), { 1.0f, 0.0f, 0.0f }));
+
+    // add small light
+    s.add_shape(pt::shapes::sphere{0.05f, small_light_ID},
+                glm::translate(glm::identity<glm::mat4>(), {0.2f, 0.45f, 0.2f}));
 
     return s;
 }
@@ -87,7 +101,7 @@ auto create_integrator()
     return pt::integrator<pt::integrators::path_tracer>();
 }
 
-void save_image(std::filesystem::path file_path, pt::image_buffers::hdr_buffer const& image_buffer)
+void save_image(std::filesystem::path file_path, pt::image_buffers::rgb_buffer const& image_buffer)
 {
     std::ofstream image_file(file_path);
 
@@ -103,39 +117,42 @@ void save_image(std::filesystem::path file_path, pt::image_buffers::hdr_buffer c
         {
             auto const& color = data[i][image_height - j];
 
-            int R = color.r * 255;
-            int G = color.g * 255;
-            int B = color.b * 255;
-
-            if (R > 255) R = 255;
-            if (R < 0) R = 0;
-
-            if (G > 255) G = 255;
-            if (G < 0) G = 0;
-
-            if (B > 255) B = 255;
-            if (B < 0) B = 0;
-
-            image_file << R << ' ' << G << ' ' << B << '\n';
+            image_file << color.r << ' ' << color.g << ' ' << color.b << '\n';
         }
     }
 }
 
-int main(int argc, char** argv)
+void render()
 {
     auto const sc = create_scene();
     auto const cam = create_camera();
     auto integrator = create_integrator();
 
+    auto render_props = decltype(integrator)::render_properties{};
+    render_props.num_samples = 512u;
+    render_props.resolution = { 1920u, 1080u };
+
     auto const start = std::chrono::high_resolution_clock::now();
-    auto const image_buffer = integrator.render_scene(sc, cam);
+    auto const raw_image_buffer = integrator.render_scene(sc, cam, render_props);
     auto const end = std::chrono::high_resolution_clock::now();
 
     auto const time = std::chrono::duration_cast<std::chrono::seconds>(end - start);
 
     std::cout << "Render time: " << std::to_string(time.count()) << " s." << std::endl;
 
-    save_image("output.ppm", image_buffer);
+    pt::post_processes::clamp_to_rgb clamp;
+    save_image("raw_output.ppm", clamp(raw_image_buffer));
+
+    pt::post_processes::gamma_correction gamma;
+    save_image("gamma_corrected.ppm", clamp(gamma(raw_image_buffer)));
+
+    pt::post_processes::modified_reinhard tone_map;
+    save_image("tone_mapped.ppm", clamp(gamma(tone_map(raw_image_buffer))));
+}
+
+int main(int argc, char** argv)
+{
+    render();
 
     return 0;
 }
