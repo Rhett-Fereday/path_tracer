@@ -2,6 +2,7 @@
 
 #include <shapes/sphere.hpp>
 #include <shapes/plane.hpp>
+#include <shapes/box.hpp>
 #include <material.hpp>
 #include <ray.hpp>
 #include <hit_info.hpp>
@@ -17,7 +18,7 @@ namespace pt
     class scene
     {
     public:
-        using shape = std::variant<shapes::sphere, shapes::plane>;
+        using shape = std::variant<shapes::sphere, shapes::plane, shapes::box>;
 
         [[nodiscard]] constexpr auto add_material(material mat) -> unsigned int
         {

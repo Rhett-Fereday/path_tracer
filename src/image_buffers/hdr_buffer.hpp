@@ -54,11 +54,17 @@ namespace pt::image_buffers
 
             for (auto j = 0; j < num_tiles_high; ++j)
             {
+                auto const y_begin = j * buffer_tile::tile_dim;
+                auto const y_end = (y_begin + buffer_tile::tile_dim >= height) ? height - 1 : y_begin + buffer_tile::tile_dim;
+
                 for (auto i = 0; i < num_tiles_wide; ++i)
                 {
+                    auto const x_begin = i * buffer_tile::tile_dim;
+                    auto const x_end = (x_begin + buffer_tile::tile_dim >= width) ? width - 1 : x_begin + buffer_tile::tile_dim;
+
                     tiles.emplace_back(buffer_tile{
-                                        i * buffer_tile::tile_dim, i * buffer_tile::tile_dim + buffer_tile::tile_dim,
-                                        j * buffer_tile::tile_dim, j * buffer_tile::tile_dim + buffer_tile::tile_dim
+                                        x_begin, x_end,
+                                        y_begin, y_end
                                     });
                 }
             }

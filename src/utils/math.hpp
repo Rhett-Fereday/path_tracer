@@ -70,4 +70,83 @@ namespace pt::math
 
         return std::optional(std::move(info));
     }
+
+    [[nodiscard]] constexpr auto ray_box_intersect(float const length, float const width, float const height, ray const& r) noexcept -> std::optional<hit_info>
+    {
+        hit_info info;
+
+        glm::vec3 const min_dimensions{0.5f * -length, 0.5f * -width, 0.5f * -height};
+        glm::vec3 const max_dimensions{0.5f * length, 0.5f * width, 0.5f * height};
+
+        float tmin = (min_dimensions.x - r.origin.x) / r.direction.x;
+        float tmax = (max_dimensions.x - r.origin.x) / r.direction.x;
+
+        float val = -1.0f;
+        unsigned int index = 0u;
+
+        if (tmin > tmax)
+        {
+            std::swap(tmin, tmax);
+            val = 1.0f;
+        }
+
+        float tymin = (min_dimensions.y - r.origin.y) / r.direction.y;
+        float tymax = (max_dimensions.y - r.origin.y) / r.direction.y;
+        float y_val = -1.0f;
+
+        if (tymin > tymax)
+        {
+            std::swap(tymin, tymax);
+            y_val = 1.0f;
+        }
+
+        if ((tmin > tymax) || (tymin > tmax)) return std::nullopt;
+
+        if (tymin > tmin)
+        {
+            tmin = tymin;
+            val = y_val;
+            index = 1u;
+        }
+
+        tmax = std::min(tmax, tymax);
+
+        float tzmin = (min_dimensions.z - r.origin.z) / r.direction.z;
+        float tzmax = (max_dimensions.z - r.origin.z) / r.direction.z;
+
+        float z_val = -1.0f;
+
+        if (tzmin > tzmax)
+        {
+            std::swap(tzmin, tzmax);
+            z_val = 1.0f;
+        }
+
+        if ((tmin > tzmax) || (tzmin > tmax)) return std::nullopt;
+
+        if (tzmin > tmin)
+        {
+            tmin = tzmin;
+            val = z_val;
+            index = 2u;
+        }
+
+        tmax = std::min(tmax, tzmax);
+
+        if ((tmin < 0.0001f) && (tmax < 0.0001f)) return std::nullopt;
+
+        info.distance = tmin;
+
+        if (tmin < 0.0001f)
+        {
+            info.distance = tmax;
+            // insideObject = true;
+        }
+
+        info.normal = { 0.0f, 0.0f, 0.0f };
+        info.normal[index] = val;
+        info.position = r.origin + info.distance * r.direction;
+
+        return std::optional(std::move(info));
+    }
 }

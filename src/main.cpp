@@ -19,7 +19,12 @@ pt::scene create_scene()
     material red_mat { {0.545f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}};
     material green_mat { {86.0f / 255.0f, 125.0f / 255.0f, 70.0f / 255.0f}, {0.0f, 0.0f, 0.0f}};
     material white_mat { {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}};
-    material light_mat { {1.0f, 1.0f, 1.0f}, {10.0f, 10.0f, 5.0f}};
+
+    // auto const scale = 60.0f;
+    // material light_mat { {1.0f, 1.0f, 1.0f}, scale * glm::vec3{1.0f, 214.0f / 255.0f, 170.0f / 255.0f}};
+
+    auto const scale = 1.0f;
+    material light_mat { {1.0f, 1.0f, 1.0f}, scale * glm::vec3{1.0f, 1.0f, 1.0f}};
 
     auto const red_ID = s.add_material(red_mat);
     auto const green_ID = s.add_material(green_mat);
@@ -28,8 +33,13 @@ pt::scene create_scene()
     auto const light_ID = s.add_material(light_mat);
 
     // add sphere
-    s.add_shape(pt::shapes::sphere{0.5f, white_ID},
-                glm::translate(glm::identity<glm::mat4>(), {0.5f, 0.5f, -0.5f}));
+    s.add_shape(pt::shapes::sphere{0.3f, white_ID},
+                glm::translate(glm::identity<glm::mat4>(), {-0.3f, 0.3f, -0.3f}));
+
+    // add right box
+    s.add_shape(pt::shapes::box(0.4f, 0.4f, 0.4f, white_ID),
+                glm::rotate(glm::translate(glm::identity<glm::mat4>(), {0.25f, 0.2f, 0.2f}),
+                glm::radians(-20.0f), {0.0f, 1.0f, 0.0f}));
 
     // add rear wall
     s.add_shape(pt::shapes::plane{10.0f, 10.0f, white_ID},
@@ -37,12 +47,12 @@ pt::scene create_scene()
 
     // add left wall
     s.add_shape(pt::shapes::plane{10.0f, 10.0f, red_ID},
-                glm::rotate(glm::translate(glm::identity<glm::mat4>(), {-2.0f, 0.0f, 0.0f}),
+                glm::rotate(glm::translate(glm::identity<glm::mat4>(), {-0.75f, 0.0f, 0.0f}),
                 glm::radians(90.0f), { 0.0f, 1.0f, 0.0f }));
 
     // add right wall
     s.add_shape(pt::shapes::plane{10.0f, 10.0f, green_ID},
-                glm::rotate(glm::translate(glm::identity<glm::mat4>(), {2.0f, 0.0f, 0.0f}),
+                glm::rotate(glm::translate(glm::identity<glm::mat4>(), {0.75f, 0.0f, 0.0f}),
                 glm::radians(-90.0f), { 0.0f, 1.0f, 0.0f }));
 
     // add floor
@@ -51,13 +61,17 @@ pt::scene create_scene()
                 glm::radians(-90.0f), { 1.0f, 0.0f, 0.0f }));
 
     // add ceiling
-    s.add_shape(pt::shapes::plane{10.0f, 10.0f, white_ID},
-                glm::rotate(glm::translate(glm::identity<glm::mat4>(), {0.0f, 3.0f, 0.0f}),
-                glm::radians(90.0f), { 1.0f, 0.0f, 0.0f }));
+    // s.add_shape(pt::shapes::plane{10.0f, 10.0f, white_ID},
+    //             glm::rotate(glm::translate(glm::identity<glm::mat4>(), {0.0f, 1.3f, 0.0f}),
+    //             glm::radians(90.0f), { 1.0f, 0.0f, 0.0f }));
 
     // add light
-    s.add_shape(pt::shapes::sphere{0.25f, light_ID},
-                glm::translate(glm::identity<glm::mat4>(), {0.0f, 2.75f, 0.0f}));
+    // s.add_shape(pt::shapes::plane{0.25f, 0.25f, light_ID},
+    //             glm::rotate(glm::translate(glm::identity<glm::mat4>(), {0.0f, 1.299f, 0.0f}),
+    //             glm::radians(90.0f), { 1.0f, 0.0f, 0.0f }));
+    s.add_shape(pt::shapes::plane{1.5f, 1.5f, light_ID},
+                glm::rotate(glm::translate(glm::identity<glm::mat4>(), {0.0f, 1.3f, 0.0f}),
+                glm::radians(90.0f), { 1.0f, 0.0f, 0.0f }));
 
     return s;
 }

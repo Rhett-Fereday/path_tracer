@@ -2,6 +2,7 @@
 
 #include <shapes/sphere.hpp>
 #include <shapes/plane.hpp>
+#include <shapes/box.hpp>
 
 namespace pt
 {
@@ -16,6 +17,11 @@ namespace pt
         [[nodiscard]] constexpr auto operator()(shapes::plane const& p) const noexcept -> unsigned int
         {
             return p.material_ID;
+        }
+
+        [[nodiscard]] constexpr auto operator()(shapes::box const& b) const noexcept -> unsigned int
+        {
+            return b.material_ID;
         }
     };
 }

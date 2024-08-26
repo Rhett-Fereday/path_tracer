@@ -19,5 +19,10 @@ namespace pt
         {
             return math::ray_plane_intersect(p.length, p.width, r);
         }
+
+        [[nodiscard]] constexpr auto operator()(shapes::box const& b, ray const& r) const noexcept
+        {
+            return math::ray_box_intersect(b.length, b.width, b.height, r);
+        }
     };
 }
